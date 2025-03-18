@@ -9,7 +9,7 @@ public class GlobalPropertiesLoader {
 
     public void loadProperties() {
         GlobalProperties globalProperties = new GlobalProperties();
-        String mqHome = System.getProperty(BrokerConstants.MQ_HOME);
+        String mqHome = System.getenv(BrokerConstants.MQ_HOME);
         if (StringUtils.isBlank(mqHome)) {
             throw new IllegalArgumentException("MQ_HOME is not set");
         }
