@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -44,15 +43,6 @@ public class MMapFileModel {
         if (force) {
             this.mappedByteBuffer.force();
         }
-    }
-
-    // 不推荐使用
-    // 不推荐的原因是因为使用了sun包下不稳定的代码
-    public void clear() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        // // 在关闭资源时执行以下代码释放内存
-        // Method m = FileChannelImpl.class.getDeclaredMethod("unmap", MappedByteBuffer.class);
-        // m.setAccessible(true);
-        // m.invoke(FileChannelImpl.class, mappedByteBuffer);
     }
 
     public void clean() {
