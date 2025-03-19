@@ -14,6 +14,8 @@ import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Objects;
@@ -42,14 +44,25 @@ public class MMapFileModel {
         if (Objects.isNull(topicModel)) {
             throw new RuntimeException("topic not found: " + topicName);
         }
-        String latestCommitLogFileName;
+        String latestCommitLogFilePath;
         CommitLogModel latestCommitLog = topicModel.getLatestCommitLog();
         if (latestCommitLog.isFull()) {
-            latestCommitLogFileName = CommitLogUtil.buildNextCommitLogFileName(latestCommitLog.getFileName());
+            latestCommitLogFilePath = this.createNewCommitLogFile(topicName, latestCommitLog);
         } else {
-            latestCommitLogFileName = latestCommitLog.getFileName();
+            latestCommitLogFilePath = CommitLogUtil.buildCommitLogFilePath(BrokerConstants.MQ_HOME, topicName, latestCommitLog.getFileName());
         }
-        return CommitLogUtil.buildCommitLogFilePath(BrokerConstants.MQ_HOME, topicName, latestCommitLogFileName);
+        return latestCommitLogFilePath;
+    }
+
+    private String createNewCommitLogFile(String topicName, CommitLogModel latestCommitLog) {
+        String newCommitLogFileName = CommitLogUtil.buildNextCommitLogFileName(latestCommitLog.getFileName());
+        String filePath = CommitLogUtil.buildCommitLogFilePath(BrokerConstants.MQ_HOME, topicName, newCommitLogFileName);
+        try {
+            Files.createFile(Paths.get(filePath));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return filePath;
     }
 
     public byte[] readContent(int pos, int size) {
