@@ -1,19 +1,22 @@
 package xyz.lp.mq.broker.cache;
 
 import xyz.lp.mq.broker.config.GlobalProperties;
-import xyz.lp.mq.broker.config.TopicInfo;
+import xyz.lp.mq.broker.model.TopicModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CommonCache {
 
     public static GlobalProperties globalProperties = new GlobalProperties();
-    public static TopicInfo topicInfo = new TopicInfo();
+    public static List<TopicModel> topicModelList = new ArrayList<>();
 
-    public static TopicInfo getTopicInfo() {
-        return topicInfo;
+    public static List<TopicModel> getTopicModelList() {
+        return topicModelList;
     }
 
-    public static void setTopicInfo(TopicInfo topicInfo) {
-        CommonCache.topicInfo = topicInfo;
+    public static void setTopicModelList(List<TopicModel> topicModelList) {
+        CommonCache.topicModelList = topicModelList;
     }
 
     public static GlobalProperties getGlobalProperties() {

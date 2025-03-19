@@ -7,14 +7,9 @@ public class MessageAppendHandler {
 
     private MMapFileModelManager mMapFileModelManager = new MMapFileModelManager();
 
-    public static final String filePath = "/Users/ruifeng/bmox/mq-java/broker/store/topic/order/000";
-    public static final String topicName = "order";
+    public MessageAppendHandler() {}
 
-    public MessageAppendHandler() throws IOException {
-        prepareMMapLoading();
-    }
-
-    private void prepareMMapLoading() throws IOException {
+    public void prepareMMapLoading(String filePath, String topicName) throws IOException {
         MMapFileModel mMapFileModel = new MMapFileModel();
         mMapFileModel.loadFileInMMap(filePath, 0, 1024 * 1024);
         mMapFileModelManager.put(topicName, mMapFileModel);
@@ -28,19 +23,13 @@ public class MessageAppendHandler {
         mMapFileModel.writeContent(content.getBytes());
     }
 
-    private void readMsg(String topic) {
+    public void readMsg(String topic) {
         MMapFileModel mMapFileModel = mMapFileModelManager.get(topic);
         if (Objects.isNull(mMapFileModel)) {
             throw new RuntimeException("topic is invalid");
         }
         byte[] content = mMapFileModel.readContent(0, 10);
         System.out.println(new String(content));
-    }
-
-    public static void main(String[] args) throws IOException {
-        MessageAppendHandler messageAppendHandler = new MessageAppendHandler();
-        messageAppendHandler.appendMsg(topicName, "hello order");
-        messageAppendHandler.readMsg(topicName);
     }
 
 }
