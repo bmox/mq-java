@@ -1,5 +1,11 @@
 package xyz.lp.mq.broker.core;
 
+import xyz.lp.mq.broker.cache.CommonCache;
+import xyz.lp.mq.broker.constants.BrokerConstants;
+import xyz.lp.mq.broker.model.CommitLogModel;
+import xyz.lp.mq.broker.model.TopicModel;
+import xyz.lp.mq.broker.utils.CommitLogUtil;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -10,6 +16,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Objects;
 
 public class MMapFileModel {
 
@@ -17,14 +24,32 @@ public class MMapFileModel {
     private FileChannel fileChannel;
     // 直接内存，jvm gc 管不到
     private MappedByteBuffer mappedByteBuffer;
+    private String topicName;
 
-    public void loadFileInMMap(String filePath, int pos, int size) throws IOException {
+    public void loadFileInMMap(String topicName, int pos, int size) throws IOException {
+        this.topicName = topicName;
+        String filePath = getLatestCommitLogFilePath(topicName);
         this.file = new File(filePath);
         if (!this.file.exists()) {
             throw new FileNotFoundException("file not found: " + filePath);
         }
         this.fileChannel = new RandomAccessFile(file, "rw").getChannel();
         this.mappedByteBuffer = this.fileChannel.map(FileChannel.MapMode.READ_WRITE, pos, size);
+    }
+
+    private String getLatestCommitLogFilePath(String topicName) {
+        TopicModel topicModel = CommonCache.getTopicModelMap().get(topicName);
+        if (Objects.isNull(topicModel)) {
+            throw new RuntimeException("topic not found: " + topicName);
+        }
+        String latestCommitLogFileName;
+        CommitLogModel latestCommitLog = topicModel.getLatestCommitLog();
+        if (latestCommitLog.isFull()) {
+            latestCommitLogFileName = CommitLogUtil.buildNextCommitLogFileName(latestCommitLog.getFileName());
+        } else {
+            latestCommitLogFileName = latestCommitLog.getFileName();
+        }
+        return CommitLogUtil.buildCommitLogFilePath(BrokerConstants.MQ_HOME, topicName, latestCommitLogFileName);
     }
 
     public byte[] readContent(int pos, int size) {
@@ -39,6 +64,14 @@ public class MMapFileModel {
     }
 
     public void writeContent(byte[] bytes, boolean force) {
+        // 写满需要新建文件并 map
+        // 封装 raw data
+        // offset manager
+        // - 线程安全
+        //   - AtomicLong，顺序无法保证
+        //   - 加锁
+        // 定时刷盘
+
         this.mappedByteBuffer.put(bytes);
         if (force) {
             this.mappedByteBuffer.force();

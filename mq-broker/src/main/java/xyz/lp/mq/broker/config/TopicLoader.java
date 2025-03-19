@@ -9,6 +9,8 @@ import xyz.lp.mq.broker.model.TopicModel;
 import xyz.lp.mq.broker.utils.FileContentReaderUtil;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class TopicLoader {
 
@@ -28,7 +30,9 @@ public class TopicLoader {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        CommonCache.setTopicModelList(topicModels);
+        Map<String, TopicModel> topicModelMap = topicModels.stream()
+                .collect(Collectors.toMap(TopicModel::getTopicName, topicModel -> topicModel));
+        CommonCache.setTopicModelMap(topicModelMap);
     }
 
 }

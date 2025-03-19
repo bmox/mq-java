@@ -6,6 +6,8 @@ public class TopicModel {
 
     private String topicName;
 
+    private CommitLogModel latestCommitLog;
+
     private List<QueueModel> queueList;
 
     private Long ctime;
@@ -18,6 +20,14 @@ public class TopicModel {
 
     public void setTopicName(String topicName) {
         this.topicName = topicName;
+    }
+
+    public CommitLogModel getLatestCommitLog() {
+        return latestCommitLog;
+    }
+
+    public void setLatestCommitLog(CommitLogModel latestCommitLog) {
+        this.latestCommitLog = latestCommitLog;
     }
 
     public List<QueueModel> getQueueList() {
@@ -48,10 +58,10 @@ public class TopicModel {
     public String toString() {
         return "TopicModel{" +
                 "topicName='" + topicName + '\'' +
+                ", latestCommitLog=" + latestCommitLog +
                 ", queueList=" + queueList +
                 ", ctime=" + ctime +
                 ", mtime=" + mtime +
                 '}';
     }
-
 }
