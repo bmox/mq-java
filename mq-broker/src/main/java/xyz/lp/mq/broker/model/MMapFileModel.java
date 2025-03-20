@@ -1,10 +1,7 @@
-package xyz.lp.mq.broker.core;
+package xyz.lp.mq.broker.model;
 
 import xyz.lp.mq.broker.cache.CommonCache;
 import xyz.lp.mq.broker.constants.BrokerConstants;
-import xyz.lp.mq.broker.model.CommitLogModel;
-import xyz.lp.mq.broker.model.CommitLogMsgModel;
-import xyz.lp.mq.broker.model.TopicModel;
 import xyz.lp.mq.broker.utils.CommitLogUtil;
 
 import java.io.File;

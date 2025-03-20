@@ -1,18 +1,20 @@
 package xyz.lp.mq.broker.config;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import xyz.lp.mq.broker.cache.CommonCache;
 import xyz.lp.mq.broker.constants.BrokerConstants;
 import xyz.lp.mq.broker.model.TopicModel;
-import xyz.lp.mq.broker.utils.FileContentReaderUtil;
+import xyz.lp.mq.broker.utils.FileUtil;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 
 public class TopicLoader {
+
+    private String topicFilePath;
 
     public void loadProperties() {
         GlobalProperties globalProperties = CommonCache.getGlobalProperties();
@@ -20,8 +22,8 @@ public class TopicLoader {
         if (StringUtils.isBlank(home)) {
             throw new IllegalArgumentException("MQ_HOME is not set");
         }
-        String topicModelPath = home + BrokerConstants.TOPIC_INFO_FILE_PATH;
-        String topicModelStr = FileContentReaderUtil.readFromFile(topicModelPath);
+        topicFilePath = home + BrokerConstants.TOPIC_INFO_FILE_PATH;
+        String topicModelStr = FileUtil.readFromFile(topicFilePath);
         ObjectMapper objectMapper = new ObjectMapper();
         List<TopicModel> topicModels;
         try {
@@ -30,9 +32,24 @@ public class TopicLoader {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        Map<String, TopicModel> topicModelMap = topicModels.stream()
-                .collect(Collectors.toMap(TopicModel::getTopicName, topicModel -> topicModel));
-        CommonCache.setTopicModelMap(topicModelMap);
+        CommonCache.setTopicModels(topicModels);
+    }
+
+    // 开启定时任务将 topic 写入磁盘
+    public void startFlushTopicTask() {
+        CommonThreadPoolConfig.FLUSH_TOPIC_EXECUTOR.execute(() -> {
+            do {
+                try {
+                    TimeUnit.SECONDS.sleep(10);
+                    List<TopicModel> topicModels = CommonCache.getTopicModels();
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    String topicModelStr = objectMapper.writeValueAsString(topicModels);
+                    FileUtil.overwriteFile(topicModelStr, topicFilePath);
+                } catch (InterruptedException | JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            } while (true);
+        });
     }
 
 }

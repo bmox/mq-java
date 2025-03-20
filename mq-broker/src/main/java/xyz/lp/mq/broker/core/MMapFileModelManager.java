@@ -1,5 +1,7 @@
 package xyz.lp.mq.broker.core;
 
+import xyz.lp.mq.broker.model.MMapFileModel;
+
 import java.util.HashMap;
 import java.util.Map;
 

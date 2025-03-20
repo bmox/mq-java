@@ -7,17 +7,26 @@ import xyz.lp.mq.broker.model.TopicModel;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.List;
 
-public class FileContentReaderUtil {
+public class FileUtil {
 
     public static String readFromFile(String path) {
         try (BufferedReader in = new BufferedReader(new FileReader(path))) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             while (in.ready()) {
                 sb.append(in.readLine());
             }
             return sb.toString();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void overwriteFile(String path, String content) {
+        try (FileWriter fileWriter = new FileWriter(path)) {
+            fileWriter.write(content);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

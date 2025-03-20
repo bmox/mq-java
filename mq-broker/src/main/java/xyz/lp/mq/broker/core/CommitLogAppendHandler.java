@@ -1,6 +1,8 @@
 package xyz.lp.mq.broker.core;
 
+import xyz.lp.mq.broker.constants.BrokerConstants;
 import xyz.lp.mq.broker.model.CommitLogMsgModel;
+import xyz.lp.mq.broker.model.MMapFileModel;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -13,7 +15,7 @@ public class CommitLogAppendHandler {
 
     public void prepareMMapLoading(String topicName) throws IOException {
         MMapFileModel mMapFileModel = new MMapFileModel();
-        mMapFileModel.loadFileInMMap(topicName, 0, 1024 * 1024);
+        mMapFileModel.loadFileInMMap(topicName, 0, BrokerConstants.COMMIT_LOG_SIZE);
         mMapFileModelManager.put(topicName, mMapFileModel);
     }
 
