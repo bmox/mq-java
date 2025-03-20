@@ -17,7 +17,7 @@ public class CommitLogAppendHandler {
         mMapFileModelManager.put(topicName, mMapFileModel);
     }
 
-    public void appendMsg(String topic, byte[] content) {
+    public void appendMsg(String topic, byte[] content) throws IOException {
         MMapFileModel mMapFileModel = mMapFileModelManager.get(topic);
         if (Objects.isNull(mMapFileModel)) {
             throw new RuntimeException("topic is invalid");

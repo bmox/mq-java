@@ -15,8 +15,6 @@ import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Objects;
@@ -32,6 +30,10 @@ public class MMapFileModel {
     public void loadFileInMMap(String topicName, int pos, int size) throws IOException {
         this.topicName = topicName;
         String filePath = getLatestCommitLogFilePath(topicName);
+        doLoadFileInMMap(filePath, pos, size);
+    }
+
+    private void doLoadFileInMMap(String filePath, int pos, int size) throws IOException {
         this.file = new File(filePath);
         if (!this.file.exists()) {
             throw new FileNotFoundException("file not found: " + filePath);
@@ -48,22 +50,11 @@ public class MMapFileModel {
         String latestCommitLogFilePath;
         CommitLogModel latestCommitLog = topicModel.getLatestCommitLog();
         if (latestCommitLog.isFull()) {
-            latestCommitLogFilePath = this.createNewCommitLogFile(topicName, latestCommitLog);
+            latestCommitLogFilePath = latestCommitLog.createNewCommitLogFile(topicName);
         } else {
             latestCommitLogFilePath = CommitLogUtil.buildCommitLogFilePath(BrokerConstants.MQ_HOME, topicName, latestCommitLog.getFileName());
         }
         return latestCommitLogFilePath;
-    }
-
-    private String createNewCommitLogFile(String topicName, CommitLogModel latestCommitLog) {
-        String newCommitLogFileName = CommitLogUtil.buildNextCommitLogFileName(latestCommitLog.getFileName());
-        String filePath = CommitLogUtil.buildCommitLogFilePath(BrokerConstants.MQ_HOME, topicName, newCommitLogFileName);
-        try {
-            Files.createFile(Paths.get(filePath));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return filePath;
     }
 
     public byte[] readContent(int pos, int size) {
@@ -73,19 +64,29 @@ public class MMapFileModel {
         return bytes;
     }
 
-    public void writeContent(CommitLogMsgModel commitLogMsg) {
+    public void writeContent(CommitLogMsgModel commitLogMsg) throws IOException {
         writeContent(commitLogMsg, false);
     }
 
-    public void writeContent(CommitLogMsgModel commitLogMsg, boolean force) {
-        // 写满需要新建文件并 map
+    public void writeContent(CommitLogMsgModel commitLogMsg, boolean force) throws IOException {
         // 封装 raw data
+        // 写满需要新建文件并 map
         // offset manager
         // - 线程安全
         //   - AtomicLong，顺序无法保证
         //   - 加锁
         // 定时刷盘
+
         byte[] bytes = commitLogMsg.toBytes();
+
+        TopicModel topicModel = CommonCache.getTopicModelMap().get(topicName);
+        CommitLogModel latestCommitLog = topicModel.getLatestCommitLog();
+
+        if (latestCommitLog.willFull((long) bytes.length)) {
+            String latestCommitLogFilePath = latestCommitLog.createNewCommitLogFile(topicName);
+            doLoadFileInMMap(latestCommitLogFilePath, 0, BrokerConstants.COMMIT_LOG_SIZE);
+        }
+
         this.mappedByteBuffer.put(bytes);
         if (force) {
             this.mappedByteBuffer.force();
