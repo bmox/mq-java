@@ -49,7 +49,8 @@ public class MMapFileModel {
         if (latestCommitLog.isFull()) {
             latestCommitLogFilePath = latestCommitLog.createNewCommitLogFile(topicName);
         } else {
-            latestCommitLogFilePath = CommitLogUtil.buildCommitLogFilePath(BrokerConstants.MQ_HOME, topicName, latestCommitLog.getFileName());
+            latestCommitLogFilePath = CommitLogUtil.buildCommitLogFilePath(
+                    CommonCache.getGlobalProperties().getMqHome(), topicName, latestCommitLog.getFileName());
         }
         return latestCommitLogFilePath;
     }
@@ -76,15 +77,14 @@ public class MMapFileModel {
 
         byte[] bytes = commitLogMsg.toBytes();
 
-        TopicModel topicModel = CommonCache.getTopicModelMap().get(topicName);
-        CommitLogModel latestCommitLog = topicModel.getLatestCommitLog();
-
+        CommitLogModel latestCommitLog = CommonCache.getLatestCommitLog(topicName);
         if (latestCommitLog.willFull((long) bytes.length)) {
             String latestCommitLogFilePath = latestCommitLog.createNewCommitLogFile(topicName);
             doLoadFileInMMap(latestCommitLogFilePath, 0, BrokerConstants.COMMIT_LOG_SIZE);
         }
 
         this.mappedByteBuffer.put(bytes);
+        latestCommitLog.getOffset().getAndAdd(bytes.length);
         if (force) {
             this.mappedByteBuffer.force();
         }

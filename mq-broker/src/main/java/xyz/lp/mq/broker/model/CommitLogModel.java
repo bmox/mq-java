@@ -6,12 +6,13 @@ import xyz.lp.mq.broker.utils.CommitLogUtil;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class CommitLogModel {
 
     private String fileName;
 
-    private Long offset;
+    private AtomicLong offset;
 
     private Long size;
 
@@ -28,11 +29,11 @@ public class CommitLogModel {
     }
 
     public boolean willFull(Long size) {
-        return this.offset + size > this.size;
+        return this.offset.get() + size > this.size;
     }
 
     public boolean isFull() {
-        return offset.equals(size);
+        return size.equals(offset.get());
     }
 
     public String getFileName() {
@@ -43,11 +44,11 @@ public class CommitLogModel {
         this.fileName = fileName;
     }
 
-    public Long getOffset() {
+    public AtomicLong getOffset() {
         return offset;
     }
 
-    public void setOffset(Long offset) {
+    public void setOffset(AtomicLong offset) {
         this.offset = offset;
     }
 

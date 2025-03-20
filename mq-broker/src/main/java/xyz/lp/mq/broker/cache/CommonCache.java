@@ -1,6 +1,7 @@
 package xyz.lp.mq.broker.cache;
 
 import xyz.lp.mq.broker.config.GlobalProperties;
+import xyz.lp.mq.broker.model.CommitLogModel;
 import xyz.lp.mq.broker.model.TopicModel;
 
 import java.util.ArrayList;
@@ -32,6 +33,11 @@ public class CommonCache {
 
     public static void setTopicModels(List<TopicModel> topicModels) {
         CommonCache.topicModels = topicModels;
+    }
+
+    public static CommitLogModel getLatestCommitLog(String topicName) {
+        TopicModel topicModel = getTopicModelMap().get(topicName);
+        return topicModel.getLatestCommitLog();
     }
 
 }

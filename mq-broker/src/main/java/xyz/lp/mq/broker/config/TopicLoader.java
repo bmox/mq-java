@@ -33,6 +33,7 @@ public class TopicLoader {
             throw new RuntimeException(e);
         }
         CommonCache.setTopicModels(topicModels);
+        startFlushTopicTask();
     }
 
     // 开启定时任务将 topic 写入磁盘
@@ -40,11 +41,11 @@ public class TopicLoader {
         CommonThreadPoolConfig.FLUSH_TOPIC_EXECUTOR.execute(() -> {
             do {
                 try {
-                    TimeUnit.SECONDS.sleep(10);
+                    TimeUnit.SECONDS.sleep(1);
                     List<TopicModel> topicModels = CommonCache.getTopicModels();
                     ObjectMapper objectMapper = new ObjectMapper();
                     String topicModelStr = objectMapper.writeValueAsString(topicModels);
-                    FileUtil.overwriteFile(topicModelStr, topicFilePath);
+                    FileUtil.overwriteFile(topicFilePath, topicModelStr);
                 } catch (InterruptedException | JsonProcessingException e) {
                     throw new RuntimeException(e);
                 }
