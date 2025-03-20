@@ -29,7 +29,7 @@ public class BrokerStartup {
 
     public static void main(String[] args) throws IOException {
         initProperties();
-        commitLogAppendHandler.appendMsg("order", "hello startup");
+        commitLogAppendHandler.appendMsg("order", "hello startup".getBytes());
         commitLogAppendHandler.readMsg("order");
     }
 

@@ -1,5 +1,7 @@
 package xyz.lp.mq.broker.core;
 
+import xyz.lp.mq.broker.model.CommitLogMsgModel;
+
 import java.io.IOException;
 import java.util.Objects;
 
@@ -15,12 +17,15 @@ public class CommitLogAppendHandler {
         mMapFileModelManager.put(topicName, mMapFileModel);
     }
 
-    public void appendMsg(String topic, String content) {
+    public void appendMsg(String topic, byte[] content) {
         MMapFileModel mMapFileModel = mMapFileModelManager.get(topic);
         if (Objects.isNull(mMapFileModel)) {
             throw new RuntimeException("topic is invalid");
         }
-        mMapFileModel.writeContent(content.getBytes());
+        CommitLogMsgModel commitLogMsg = new CommitLogMsgModel();
+        commitLogMsg.setSize(content.length);
+        commitLogMsg.setContent(content);
+        mMapFileModel.writeContent(commitLogMsg);
     }
 
     public void readMsg(String topic) {

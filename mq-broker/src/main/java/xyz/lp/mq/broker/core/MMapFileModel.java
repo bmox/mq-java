@@ -3,6 +3,7 @@ package xyz.lp.mq.broker.core;
 import xyz.lp.mq.broker.cache.CommonCache;
 import xyz.lp.mq.broker.constants.BrokerConstants;
 import xyz.lp.mq.broker.model.CommitLogModel;
+import xyz.lp.mq.broker.model.CommitLogMsgModel;
 import xyz.lp.mq.broker.model.TopicModel;
 import xyz.lp.mq.broker.utils.CommitLogUtil;
 
@@ -72,11 +73,11 @@ public class MMapFileModel {
         return bytes;
     }
 
-    public void writeContent(byte[] bytes) {
-        writeContent(bytes, false);
+    public void writeContent(CommitLogMsgModel commitLogMsg) {
+        writeContent(commitLogMsg, false);
     }
 
-    public void writeContent(byte[] bytes, boolean force) {
+    public void writeContent(CommitLogMsgModel commitLogMsg, boolean force) {
         // 写满需要新建文件并 map
         // 封装 raw data
         // offset manager
@@ -84,7 +85,7 @@ public class MMapFileModel {
         //   - AtomicLong，顺序无法保证
         //   - 加锁
         // 定时刷盘
-
+        byte[] bytes = commitLogMsg.toBytes();
         this.mappedByteBuffer.put(bytes);
         if (force) {
             this.mappedByteBuffer.force();
