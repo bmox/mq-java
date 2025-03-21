@@ -1,8 +1,9 @@
 package xyz.lp.mq.broker.model;
 
 import xyz.lp.mq.broker.cache.CommonCache;
-import xyz.lp.mq.broker.constants.BrokerConstants;
 import xyz.lp.mq.broker.utils.CommitLogUtil;
+import xyz.lp.mq.broker.utils.Lock;
+import xyz.lp.mq.broker.utils.UnfairReentrantLock;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,6 +24,7 @@ public class MMapFileModel {
     // 直接内存，jvm gc 管不到
     private MappedByteBuffer mappedByteBuffer;
     private String topicName;
+    private Lock putLock = new UnfairReentrantLock();
 
     public void loadFileInMMap(String topicName, int pos, int size) throws IOException {
         this.topicName = topicName;
@@ -49,8 +51,7 @@ public class MMapFileModel {
         if (latestCommitLog.isFull()) {
             latestCommitLogFilePath = latestCommitLog.createNewCommitLogFile(topicName);
         } else {
-            latestCommitLogFilePath = CommitLogUtil.buildCommitLogFilePath(
-                    CommonCache.getGlobalProperties().getMqHome(), topicName, latestCommitLog.getFileName());
+            latestCommitLogFilePath = CommitLogUtil.buildCommitLogFilePath( topicName, latestCommitLog.getFileName());
         }
         return latestCommitLogFilePath;
     }
@@ -80,14 +81,20 @@ public class MMapFileModel {
         CommitLogModel latestCommitLog = CommonCache.getLatestCommitLog(topicName);
         if (latestCommitLog.willFull((long) bytes.length)) {
             String latestCommitLogFilePath = latestCommitLog.createNewCommitLogFile(topicName);
-            doLoadFileInMMap(latestCommitLogFilePath, 0, BrokerConstants.COMMIT_LOG_SIZE);
+            doLoadFileInMMap(latestCommitLogFilePath, 0, latestCommitLog.getSize().intValue());
         }
 
+        putLock.lock();
+
         this.mappedByteBuffer.put(bytes);
+
         latestCommitLog.getOffset().getAndAdd(bytes.length);
+
         if (force) {
             this.mappedByteBuffer.force();
         }
+
+        putLock.unlock();
     }
 
     public void clean() {

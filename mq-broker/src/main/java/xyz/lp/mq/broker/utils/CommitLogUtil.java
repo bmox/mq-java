@@ -1,5 +1,6 @@
 package xyz.lp.mq.broker.utils;
 
+import xyz.lp.mq.broker.cache.CommonCache;
 import xyz.lp.mq.broker.constants.BrokerConstants;
 
 public class CommitLogUtil {
@@ -20,16 +21,9 @@ public class CommitLogUtil {
         return String.format("%08d",  l);
     }
 
-    public static String buildCommitLogFilePath(String mqHome, String topicName, String fileName) {
-        return mqHome + BrokerConstants.TOPIC_DIR_PATH + "/" + topicName + "/" + fileName;
-    }
-
-    public static void main(String[] args) {
-        System.out.println(buildFirstCommitLogFileName());
-        System.out.println(buildNextCommitLogFileName("00000000"));
-        System.out.println(buildNextCommitLogFileName("12345678"));
-        System.out.println(buildNextCommitLogFileName("99999998"));
-        System.out.println(buildNextCommitLogFileName("99999999"));
+    public static String buildCommitLogFilePath(String topicName, String fileName) {
+        return CommonCache.getGlobalProperties().getMqHome() + BrokerConstants.TOPIC_DIR_PATH + "/" + topicName +
+                "/" + fileName;
     }
 
 }

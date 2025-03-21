@@ -18,13 +18,15 @@ public class CommitLogModel {
 
     public String createNewCommitLogFile(String topicName) {
         String newCommitLogFileName = CommitLogUtil.buildNextCommitLogFileName(this.getFileName());
-        String filePath = CommitLogUtil.buildCommitLogFilePath(BrokerConstants.MQ_HOME, topicName, newCommitLogFileName);
+        String filePath = CommitLogUtil.buildCommitLogFilePath(topicName, newCommitLogFileName);
         try {
             Files.createFile(Paths.get(filePath));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         fileName = newCommitLogFileName;
+        offset.set(0L);
+        size = Long.valueOf(BrokerConstants.COMMIT_LOG_SIZE);
         return filePath;
     }
 

@@ -41,7 +41,7 @@ public class TopicLoader {
         CommonThreadPoolConfig.FLUSH_TOPIC_EXECUTOR.execute(() -> {
             do {
                 try {
-                    TimeUnit.SECONDS.sleep(1);
+                    TimeUnit.SECONDS.sleep(3);
                     List<TopicModel> topicModels = CommonCache.getTopicModels();
                     ObjectMapper objectMapper = new ObjectMapper();
                     String topicModelStr = objectMapper.writeValueAsString(topicModels);
