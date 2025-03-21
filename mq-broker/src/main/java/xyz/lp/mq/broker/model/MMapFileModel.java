@@ -84,17 +84,17 @@ public class MMapFileModel {
             doLoadFileInMMap(latestCommitLogFilePath, 0, latestCommitLog.getSize().intValue());
         }
 
-        putLock.lock();
-
-        this.mappedByteBuffer.put(bytes);
-
-        latestCommitLog.getOffset().getAndAdd(bytes.length);
-
-        if (force) {
-            this.mappedByteBuffer.force();
+        try {
+            putLock.lock();
+            this.mappedByteBuffer.put(bytes);
+            latestCommitLog.getOffset().getAndAdd(bytes.length);
+            if (force) {
+                this.mappedByteBuffer.force();
+            }
+        } finally {
+            putLock.unlock();
         }
 
-        putLock.unlock();
     }
 
     public void clean() {
