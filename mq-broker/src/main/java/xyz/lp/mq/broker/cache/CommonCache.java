@@ -7,6 +7,7 @@ import xyz.lp.mq.broker.model.TopicModel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class CommonCache {
@@ -37,6 +38,9 @@ public class CommonCache {
 
     public static CommitLogModel getLatestCommitLog(String topicName) {
         TopicModel topicModel = getTopicModelMap().get(topicName);
+        if (Objects.isNull(topicModel)) {
+            throw new RuntimeException("topic not found: " + topicName);
+        }
         return topicModel.getLatestCommitLog();
     }
 

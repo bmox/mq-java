@@ -16,6 +16,7 @@ import java.nio.channels.FileChannel;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class MMapFileModel {
 
@@ -87,7 +88,9 @@ public class MMapFileModel {
                 doLoadFileInMMap(latestCommitLogFilePath, 0, latestCommitLog.getSize().intValue());
             }
             this.mappedByteBuffer.put(bytes);
-            latestCommitLog.getOffset().getAndAdd(bytes.length);
+            AtomicLong latestOffset = latestCommitLog.getOffset();
+            dispatch(latestOffset, bytes.length);
+            latestOffset.getAndAdd(bytes.length);
             if (force) {
                 this.mappedByteBuffer.force();
             }
@@ -95,6 +98,13 @@ public class MMapFileModel {
             putLock.unlock();
         }
 
+    }
+
+    private void dispatch(AtomicLong latestOffset, int length) {
+        ConsumerQueueDetailModel consumerQueueDetailModel = new ConsumerQueueDetailModel();
+        consumerQueueDetailModel.setCommitLogFilename(CommonCache.getLatestCommitLog(topicName).getFileName());
+        consumerQueueDetailModel.setMsgIndex(latestOffset.get());
+        consumerQueueDetailModel.setMsgLen(length);
     }
 
     public void clean() {
