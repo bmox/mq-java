@@ -30,8 +30,13 @@ public class BrokerStartup {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         initProperties();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 256; i++) {
+            sb.append('A');
+        }
+        String msg = sb.toString();
         for (int i = 0; i < 10; i++) {
-            commitLogAppendHandler.appendMsg("order", String.format("hello world %d \n", i).getBytes());
+            commitLogAppendHandler.appendMsg("order", msg.getBytes());
             TimeUnit.SECONDS.sleep(2);
         }
     }

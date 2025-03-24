@@ -8,6 +8,6 @@ public class BrokerConstants {
 
     public static final String TOPIC_INFO_FILE_PATH = "/config/topic-info.json";
 
-    public static final Integer COMMIT_LOG_SIZE = 1024 * 1024;
+    public static final Integer COMMIT_LOG_SIZE = 1024;
 
 }

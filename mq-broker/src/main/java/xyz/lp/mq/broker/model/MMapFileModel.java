@@ -79,13 +79,13 @@ public class MMapFileModel {
         byte[] bytes = commitLogMsg.toBytes();
 
         CommitLogModel latestCommitLog = CommonCache.getLatestCommitLog(topicName);
-        if (latestCommitLog.willFull((long) bytes.length)) {
-            String latestCommitLogFilePath = latestCommitLog.createNewCommitLogFile(topicName);
-            doLoadFileInMMap(latestCommitLogFilePath, 0, latestCommitLog.getSize().intValue());
-        }
 
         try {
             putLock.lock();
+            if (latestCommitLog.willFull((long) bytes.length)) {
+                String latestCommitLogFilePath = latestCommitLog.createNewCommitLogFile(topicName);
+                doLoadFileInMMap(latestCommitLogFilePath, 0, latestCommitLog.getSize().intValue());
+            }
             this.mappedByteBuffer.put(bytes);
             latestCommitLog.getOffset().getAndAdd(bytes.length);
             if (force) {

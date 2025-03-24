@@ -1,5 +1,6 @@
 package xyz.lp.mq.broker.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import xyz.lp.mq.broker.constants.BrokerConstants;
 import xyz.lp.mq.broker.utils.CommitLogUtil;
 
@@ -8,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicLong;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CommitLogModel {
 
     private String fileName;
