@@ -16,7 +16,7 @@ import java.nio.channels.FileChannel;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MMapFileModel {
 
@@ -52,7 +52,7 @@ public class MMapFileModel {
         if (latestCommitLog.isFull()) {
             latestCommitLogFilePath = latestCommitLog.createNewCommitLogFile(topicName);
         } else {
-            latestCommitLogFilePath = CommitLogUtil.buildCommitLogFilePath( topicName, latestCommitLog.getFileName());
+            latestCommitLogFilePath = CommitLogUtil.buildCommitLogFilePath( topicName, latestCommitLog.getFilename());
         }
         return latestCommitLogFilePath;
     }
@@ -85,10 +85,10 @@ public class MMapFileModel {
             putLock.lock();
             if (latestCommitLog.willFull((long) bytes.length)) {
                 String latestCommitLogFilePath = latestCommitLog.createNewCommitLogFile(topicName);
-                doLoadFileInMMap(latestCommitLogFilePath, 0, latestCommitLog.getSize().intValue());
+                doLoadFileInMMap(latestCommitLogFilePath, 0, latestCommitLog.getSize());
             }
             this.mappedByteBuffer.put(bytes);
-            AtomicLong latestOffset = latestCommitLog.getOffset();
+            AtomicInteger latestOffset = latestCommitLog.getOffset();
             dispatch(latestOffset, bytes.length);
             latestOffset.getAndAdd(bytes.length);
             if (force) {
@@ -100,11 +100,11 @@ public class MMapFileModel {
 
     }
 
-    private void dispatch(AtomicLong latestOffset, int length) {
-        ConsumerQueueDetailModel consumerQueueDetailModel = new ConsumerQueueDetailModel();
-        consumerQueueDetailModel.setCommitLogFilename(CommonCache.getLatestCommitLog(topicName).getFileName());
-        consumerQueueDetailModel.setMsgIndex(latestOffset.get());
-        consumerQueueDetailModel.setMsgLen(length);
+    private void dispatch(AtomicInteger latestOffset, int length) {
+        QueueItemModel queueItemModel = new QueueItemModel();
+        queueItemModel.setCommitLogFilename(CommonCache.getLatestCommitLog(topicName).getFilename());
+        queueItemModel.setMsgIndex(latestOffset.get());
+        queueItemModel.setMsgLen(length);
     }
 
     public void clean() {

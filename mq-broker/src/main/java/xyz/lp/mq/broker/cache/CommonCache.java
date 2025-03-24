@@ -2,6 +2,7 @@ package xyz.lp.mq.broker.cache;
 
 import xyz.lp.mq.broker.config.GlobalProperties;
 import xyz.lp.mq.broker.model.CommitLogModel;
+import xyz.lp.mq.broker.model.CurrentOffsetModel;
 import xyz.lp.mq.broker.model.TopicModel;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ public class CommonCache {
 
     public static GlobalProperties globalProperties = new GlobalProperties();
     public static List<TopicModel> topicModels = new ArrayList<>();
+    public static List<CurrentOffsetModel> currentOffsetModels = new ArrayList<>();
 
     public static GlobalProperties getGlobalProperties() {
         return globalProperties;
@@ -34,6 +36,14 @@ public class CommonCache {
 
     public static void setTopicModels(List<TopicModel> topicModels) {
         CommonCache.topicModels = topicModels;
+    }
+
+    public static List<CurrentOffsetModel> getCurrentOffsetModels() {
+        return currentOffsetModels;
+    }
+
+    public static void setCurrentOffsetModels(List<CurrentOffsetModel> currentOffsetModels) {
+        CommonCache.currentOffsetModels = currentOffsetModels;
     }
 
     public static CommitLogModel getLatestCommitLog(String topicName) {

@@ -1,6 +1,7 @@
 package xyz.lp.mq.broker;
 
 import xyz.lp.mq.broker.cache.CommonCache;
+import xyz.lp.mq.broker.config.CurrentOffsetLoader;
 import xyz.lp.mq.broker.config.GlobalPropertiesLoader;
 import xyz.lp.mq.broker.config.TopicLoader;
 import xyz.lp.mq.broker.core.CommitLogAppendHandler;
@@ -13,6 +14,7 @@ public class BrokerStartup {
     private static GlobalPropertiesLoader globalPropertiesLoader;
     private static TopicLoader topicLoader;
     private static CommitLogAppendHandler commitLogAppendHandler;
+    private static CurrentOffsetLoader currentOffsetLoader;
 
     private static void initProperties() throws IOException {
         globalPropertiesLoader = new GlobalPropertiesLoader();
@@ -20,6 +22,11 @@ public class BrokerStartup {
 
         topicLoader = new TopicLoader();
         topicLoader.loadProperties();
+        topicLoader.startFlushTopicTask();
+
+        currentOffsetLoader = new CurrentOffsetLoader();
+        currentOffsetLoader.loadProperties();
+        currentOffsetLoader.startFlushCurrentOffsetTask();
 
         commitLogAppendHandler = new CommitLogAppendHandler();
         for (String topicName : CommonCache.getTopicModelMap().keySet()) {

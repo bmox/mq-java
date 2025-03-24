@@ -1,10 +1,10 @@
 package xyz.lp.mq.broker.model;
 
-public class ConsumerQueueDetailModel {
+public class QueueItemModel {
 
     private String commitLogFilename;
 
-    private long msgIndex;
+    private int msgIndex;
 
     private int msgLen;
 
@@ -16,11 +16,11 @@ public class ConsumerQueueDetailModel {
         this.commitLogFilename = commitLogFilename;
     }
 
-    public long getMsgIndex() {
+    public int getMsgIndex() {
         return msgIndex;
     }
 
-    public void setMsgIndex(long msgIndex) {
+    public void setMsgIndex(int msgIndex) {
         this.msgIndex = msgIndex;
     }
 
@@ -34,10 +34,11 @@ public class ConsumerQueueDetailModel {
 
     @Override
     public String toString() {
-        return "ConsumerQueueDetailModel{" +
+        return "QueueItemModel{" +
                 "commitLogFilename='" + commitLogFilename + '\'' +
                 ", msgIndex=" + msgIndex +
                 ", msgLen=" + msgLen +
                 '}';
     }
+
 }

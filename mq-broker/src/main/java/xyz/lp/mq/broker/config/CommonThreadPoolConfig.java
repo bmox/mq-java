@@ -16,4 +16,14 @@ public class CommonThreadPoolConfig {
             }
     );
 
+    public static ThreadPoolExecutor FLUSH_CURRENT_OFFSET_EXECUTOR = new ThreadPoolExecutor(
+            1, 1, 30L, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<Runnable>(10),
+            r -> {
+                Thread thread = new Thread(r);
+                thread.setName("flush-current-offset-executor");
+                return thread;
+            }
+    );
+
 }

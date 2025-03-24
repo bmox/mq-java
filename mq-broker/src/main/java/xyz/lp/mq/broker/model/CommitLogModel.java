@@ -7,28 +7,28 @@ import xyz.lp.mq.broker.utils.CommitLogUtil;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CommitLogModel {
 
-    private String fileName;
+    private String filename;
 
-    private AtomicLong offset;
+    private AtomicInteger offset;
 
-    private Long size;
+    private Integer size;
 
     public String createNewCommitLogFile(String topicName) {
-        String newCommitLogFileName = CommitLogUtil.buildNextCommitLogFileName(this.getFileName());
+        String newCommitLogFileName = CommitLogUtil.buildNextCommitLogFileName(this.getFilename());
         String filePath = CommitLogUtil.buildCommitLogFilePath(topicName, newCommitLogFileName);
         try {
             Files.createFile(Paths.get(filePath));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        fileName = newCommitLogFileName;
-        offset.set(0L);
-        size = Long.valueOf(BrokerConstants.COMMIT_LOG_SIZE);
+        filename = newCommitLogFileName;
+        offset.set(0);
+        size = BrokerConstants.COMMIT_LOG_SIZE;
         return filePath;
     }
 
@@ -40,34 +40,34 @@ public class CommitLogModel {
         return size.equals(offset.get());
     }
 
-    public String getFileName() {
-        return fileName;
+    public String getFilename() {
+        return filename;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
+    public void setFilename(String filename) {
+        this.filename = filename;
     }
 
-    public AtomicLong getOffset() {
+    public AtomicInteger getOffset() {
         return offset;
     }
 
-    public void setOffset(AtomicLong offset) {
+    public void setOffset(AtomicInteger offset) {
         this.offset = offset;
     }
 
-    public Long getSize() {
+    public Integer getSize() {
         return size;
     }
 
-    public void setSize(Long size) {
+    public void setSize(Integer size) {
         this.size = size;
     }
 
     @Override
     public String toString() {
         return "CommitLogModel{" +
-                "fileName='" + fileName + '\'' +
+                "fileName='" + filename + '\'' +
                 ", offset=" + offset +
                 ", size=" + size +
                 '}';

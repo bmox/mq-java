@@ -22,7 +22,7 @@ public class CommitLogUtil {
     }
 
     public static String buildCommitLogFilePath(String topicName, String fileName) {
-        return CommonCache.getGlobalProperties().getMqHome() + BrokerConstants.TOPIC_DIR_PATH + "/" + topicName +
+        return CommonCache.getGlobalProperties().getMqHome() + BrokerConstants.COMMIT_LOG_TOPIC_DIR_PATH + "/" + topicName +
                 "/" + fileName;
     }
 
