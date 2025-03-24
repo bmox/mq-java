@@ -1,16 +1,21 @@
-package xyz.lp.mq.broker.core;
+package xyz.lp.mq.broker.model;
+
+import xyz.lp.mq.broker.cache.CommonCache;
+import xyz.lp.mq.broker.utils.CommitLogUtil;
+import xyz.lp.mq.broker.utils.Lock;
+import xyz.lp.mq.broker.utils.UnfairReentrantLock;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Objects;
 
 public class MMapFileModel {
 
@@ -18,14 +23,37 @@ public class MMapFileModel {
     private FileChannel fileChannel;
     // 直接内存，jvm gc 管不到
     private MappedByteBuffer mappedByteBuffer;
+    private String topicName;
+    private Lock putLock = new UnfairReentrantLock();
 
-    public void loadFileInMMap(String filePath, int pos, int size) throws IOException {
+    public void loadFileInMMap(String topicName, int pos, int size) throws IOException {
+        this.topicName = topicName;
+        String filePath = getLatestCommitLogFilePath(topicName);
+        doLoadFileInMMap(filePath, pos, size);
+    }
+
+    private void doLoadFileInMMap(String filePath, int pos, int size) throws IOException {
         this.file = new File(filePath);
         if (!this.file.exists()) {
             throw new FileNotFoundException("file not found: " + filePath);
         }
         this.fileChannel = new RandomAccessFile(file, "rw").getChannel();
         this.mappedByteBuffer = this.fileChannel.map(FileChannel.MapMode.READ_WRITE, pos, size);
+    }
+
+    private String getLatestCommitLogFilePath(String topicName) {
+        TopicModel topicModel = CommonCache.getTopicModelMap().get(topicName);
+        if (Objects.isNull(topicModel)) {
+            throw new RuntimeException("topic not found: " + topicName);
+        }
+        String latestCommitLogFilePath;
+        CommitLogModel latestCommitLog = topicModel.getLatestCommitLog();
+        if (latestCommitLog.isFull()) {
+            latestCommitLogFilePath = latestCommitLog.createNewCommitLogFile(topicName);
+        } else {
+            latestCommitLogFilePath = CommitLogUtil.buildCommitLogFilePath( topicName, latestCommitLog.getFileName());
+        }
+        return latestCommitLogFilePath;
     }
 
     public byte[] readContent(int pos, int size) {
@@ -35,24 +63,38 @@ public class MMapFileModel {
         return bytes;
     }
 
-    public void writeContent(byte[] bytes) {
-        writeContent(bytes, false);
+    public void writeContent(CommitLogMsgModel commitLogMsg) throws IOException {
+        writeContent(commitLogMsg, false);
     }
 
-    public void writeContent(byte[] bytes, boolean force) {
-        this.mappedByteBuffer.put(bytes);
-        if (force) {
-            this.mappedByteBuffer.force();
+    public void writeContent(CommitLogMsgModel commitLogMsg, boolean force) throws IOException {
+        // 封装 raw data
+        // 写满需要新建文件并 map
+        // offset manager
+        // - 线程安全
+        //   - AtomicLong，顺序无法保证
+        //   - 加锁
+        // 定时刷盘
+
+        byte[] bytes = commitLogMsg.toBytes();
+
+        CommitLogModel latestCommitLog = CommonCache.getLatestCommitLog(topicName);
+
+        try {
+            putLock.lock();
+            if (latestCommitLog.willFull((long) bytes.length)) {
+                String latestCommitLogFilePath = latestCommitLog.createNewCommitLogFile(topicName);
+                doLoadFileInMMap(latestCommitLogFilePath, 0, latestCommitLog.getSize().intValue());
+            }
+            this.mappedByteBuffer.put(bytes);
+            latestCommitLog.getOffset().getAndAdd(bytes.length);
+            if (force) {
+                this.mappedByteBuffer.force();
+            }
+        } finally {
+            putLock.unlock();
         }
-    }
 
-    // 不推荐使用
-    // 不推荐的原因是因为使用了sun包下不稳定的代码
-    public void clear() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        // // 在关闭资源时执行以下代码释放内存
-        // Method m = FileChannelImpl.class.getDeclaredMethod("unmap", MappedByteBuffer.class);
-        // m.setAccessible(true);
-        // m.invoke(FileChannelImpl.class, mappedByteBuffer);
     }
 
     public void clean() {
