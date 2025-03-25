@@ -1,6 +1,7 @@
 package xyz.lp.mq.broker.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
 import xyz.lp.mq.broker.constants.BrokerConstants;
 import xyz.lp.mq.broker.utils.CommitLogUtil;
 
@@ -9,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CommitLogModel {
 
@@ -40,36 +42,8 @@ public class CommitLogModel {
         return size.equals(offset.get());
     }
 
-    public String getFilename() {
-        return filename;
+    public Integer getFilenameInt() {
+        return Integer.valueOf(filename);
     }
 
-    public void setFilename(String filename) {
-        this.filename = filename;
-    }
-
-    public AtomicInteger getOffset() {
-        return offset;
-    }
-
-    public void setOffset(AtomicInteger offset) {
-        this.offset = offset;
-    }
-
-    public Integer getSize() {
-        return size;
-    }
-
-    public void setSize(Integer size) {
-        this.size = size;
-    }
-
-    @Override
-    public String toString() {
-        return "CommitLogModel{" +
-                "fileName='" + filename + '\'' +
-                ", offset=" + offset +
-                ", size=" + size +
-                '}';
-    }
 }

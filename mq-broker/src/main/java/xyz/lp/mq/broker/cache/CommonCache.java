@@ -3,6 +3,7 @@ package xyz.lp.mq.broker.cache;
 import xyz.lp.mq.broker.config.GlobalProperties;
 import xyz.lp.mq.broker.model.CommitLogModel;
 import xyz.lp.mq.broker.model.CurrentOffsetModel;
+import xyz.lp.mq.broker.model.QueueModel;
 import xyz.lp.mq.broker.model.TopicModel;
 
 import java.util.ArrayList;
@@ -16,6 +17,14 @@ public class CommonCache {
     public static GlobalProperties globalProperties = new GlobalProperties();
     public static List<TopicModel> topicModels = new ArrayList<>();
     public static List<CurrentOffsetModel> currentOffsetModels = new ArrayList<>();
+
+    public static List<QueueModel> getQueueList(String topicName) {
+        TopicModel topicModel = getTopicModelMap().get(topicName);
+        if (Objects.isNull(topicModel)) {
+            throw new RuntimeException("topic not found: " + topicName);
+        }
+        return topicModel.getQueueList();
+    }
 
     public static GlobalProperties getGlobalProperties() {
         return globalProperties;

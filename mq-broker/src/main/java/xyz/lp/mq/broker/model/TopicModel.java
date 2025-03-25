@@ -26,6 +26,21 @@ public class TopicModel {
         return latestCommitLog;
     }
 
+    public QueueModel getQueue(Integer queueId) {
+        if (queueId == null) {
+            return null;
+        }
+        if (queueList == null || queueList.isEmpty()) {
+            return null;
+        }
+        for (QueueModel queueModel : queueList) {
+            if (queueId.equals(queueModel.getId())) {
+                return queueModel;
+            }
+        }
+        return null;
+    }
+
     public void setLatestCommitLog(CommitLogModel latestCommitLog) {
         this.latestCommitLog = latestCommitLog;
     }

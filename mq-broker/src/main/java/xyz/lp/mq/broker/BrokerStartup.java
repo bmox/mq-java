@@ -5,6 +5,7 @@ import xyz.lp.mq.broker.config.CurrentOffsetLoader;
 import xyz.lp.mq.broker.config.GlobalPropertiesLoader;
 import xyz.lp.mq.broker.config.TopicLoader;
 import xyz.lp.mq.broker.core.CommitLogAppendHandler;
+import xyz.lp.mq.broker.core.QueueAppendHandler;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -15,6 +16,7 @@ public class BrokerStartup {
     private static TopicLoader topicLoader;
     private static CommitLogAppendHandler commitLogAppendHandler;
     private static CurrentOffsetLoader currentOffsetLoader;
+    private static QueueAppendHandler queueAppendHandler;
 
     private static void initProperties() throws IOException {
         globalPropertiesLoader = new GlobalPropertiesLoader();
@@ -31,8 +33,8 @@ public class BrokerStartup {
         commitLogAppendHandler = new CommitLogAppendHandler();
         for (String topicName : CommonCache.getTopicModelMap().keySet()) {
             commitLogAppendHandler.prepareMMapLoading(topicName);
+            queueAppendHandler.prepareMMapLoading(topicName);
         }
-
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
