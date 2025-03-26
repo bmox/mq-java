@@ -7,6 +7,7 @@ import xyz.lp.mq.broker.utils.QueueUtil;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Data
 public class QueueModel {
@@ -19,10 +20,14 @@ public class QueueModel {
 
     private Integer lastOffset;
 
-    private Integer latestOffset;
+    private AtomicInteger latestOffset;
 
     public boolean isFull() {
-        return latestOffset >= size;
+        return latestOffset.get() >= size;
+    }
+
+    public boolean willFull(int len) {
+        return this.latestOffset.get() + len > this.size;
     }
 
     public String createNewQueueFile(String topicName) {
@@ -35,7 +40,7 @@ public class QueueModel {
         }
         filename = newQueueFileName;
         lastOffset = 0;
-        latestOffset = 0;
+        latestOffset.set(0);
         size = BrokerConstants.QUEUE_SIZE;
         return filePath;
     }

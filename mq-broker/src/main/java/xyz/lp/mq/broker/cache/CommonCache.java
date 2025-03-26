@@ -1,10 +1,8 @@
 package xyz.lp.mq.broker.cache;
 
 import xyz.lp.mq.broker.config.GlobalProperties;
-import xyz.lp.mq.broker.model.CommitLogModel;
-import xyz.lp.mq.broker.model.CurrentOffsetModel;
-import xyz.lp.mq.broker.model.QueueModel;
-import xyz.lp.mq.broker.model.TopicModel;
+import xyz.lp.mq.broker.core.QueueMMapFileModelManager;
+import xyz.lp.mq.broker.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +15,7 @@ public class CommonCache {
     public static GlobalProperties globalProperties = new GlobalProperties();
     public static List<TopicModel> topicModels = new ArrayList<>();
     public static List<CurrentOffsetModel> currentOffsetModels = new ArrayList<>();
+    public static QueueMMapFileModelManager queueMMapFileModelManager;
 
     public static List<QueueModel> getQueueList(String topicName) {
         TopicModel topicModel = getTopicModelMap().get(topicName);
@@ -37,6 +36,10 @@ public class CommonCache {
     public static Map<String, TopicModel> getTopicModelMap() {
         return topicModels.stream()
                 .collect(Collectors.toMap(TopicModel::getTopicName, topicModel -> topicModel));
+    }
+
+    public static TopicModel getTopicModel(String topicName) {
+        return getTopicModelMap().get(topicName);
     }
 
     public static List<TopicModel> getTopicModels() {
@@ -61,6 +64,30 @@ public class CommonCache {
             throw new RuntimeException("topic not found: " + topicName);
         }
         return topicModel.getLatestCommitLog();
+    }
+
+    public static QueueMMapFileModel getQueueMMapFileModel(String topicName, int queueId) {
+        return null;
+    }
+
+    public static void setQueueMMapFileModelManager(QueueMMapFileModelManager queueMMapFileModelManager) {
+        CommonCache.queueMMapFileModelManager = queueMMapFileModelManager;
+    }
+
+    public static QueueMMapFileModelManager getQueueMMapFileModelManager() {
+        return queueMMapFileModelManager;
+    }
+
+    public static QueueMMapFileModel getQueueMMapFileModel(String topicName, Integer queueId) {
+        return queueMMapFileModelManager.get(topicName, queueId);
+    }
+
+    public static QueueModel getQueue(String topicName, Integer queueId) {
+        TopicModel topicModel = getTopicModelMap().get(topicName);
+        if (Objects.isNull(topicModel)) {
+            throw new RuntimeException("topic not found: " + topicName);
+        }
+        return topicModel.getQueue(queueId);
     }
 
 }

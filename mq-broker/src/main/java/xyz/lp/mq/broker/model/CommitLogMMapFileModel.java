@@ -68,12 +68,16 @@ public class CommitLogMMapFileModel extends MMapFileModel {
 
     }
 
-    private void dispatch(AtomicInteger latestOffset, int length) {
+    private void dispatch(AtomicInteger latestOffset, int length) throws IOException {
         CommitLogIndexModel commitLogIndexModel = new CommitLogIndexModel();
         commitLogIndexModel.setCommitLogFilename(CommonCache.getLatestCommitLog(topicName).getFilenameInt());
         commitLogIndexModel.setMsgIndex(latestOffset.get());
         commitLogIndexModel.setMsgLen(length);
+        // TODO: queueId 使用某个算法计算而来
+        int queueId = 0;
+        QueueMMapFileModel queueMMapFileModel = CommonCache.getQueueMMapFileModel(topicName, queueId);
+        byte[] bytes = commitLogIndexModel.toBytes();
+        queueMMapFileModel.writeContent(bytes);
     }
-
 
 }

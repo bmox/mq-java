@@ -3,7 +3,6 @@ package xyz.lp.mq.broker.core;
 import xyz.lp.mq.broker.cache.CommonCache;
 import xyz.lp.mq.broker.model.QueueMMapFileModel;
 import xyz.lp.mq.broker.model.QueueModel;
-import xyz.lp.mq.broker.utils.QueueUtil;
 
 import java.io.IOException;
 import java.util.List;
@@ -18,8 +17,8 @@ public class QueueAppendHandler {
         List<QueueModel> queueList = CommonCache.getQueueList(topicName);
         for (QueueModel queueModel : queueList) {
             QueueMMapFileModel queueMMapFileModel = new QueueMMapFileModel();
-            String queueFilePath = QueueUtil.buildQueueFilePath(topicName, queueModel.getId(), queueModel.getFilename());
-            queueMMapFileModel.loadFileInMMap(queueFilePath, queueModel.getLastOffset(), queueModel.getSize());
+            queueMMapFileModel.loadQueueFileInMMap(topicName, queueModel.getId(), queueModel.getLastOffset(),
+                    queueModel.getSize());
             queueMMapFileModelManager.put(topicName, queueModel.getId(), queueMMapFileModel);
         }
     }

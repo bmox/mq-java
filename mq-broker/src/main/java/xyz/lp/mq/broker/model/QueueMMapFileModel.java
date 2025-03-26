@@ -1,6 +1,7 @@
 package xyz.lp.mq.broker.model;
 
 import xyz.lp.mq.broker.cache.CommonCache;
+import xyz.lp.mq.broker.constants.BrokerConstants;
 import xyz.lp.mq.broker.utils.Lock;
 import xyz.lp.mq.broker.utils.QueueUtil;
 import xyz.lp.mq.broker.utils.UnfairReentrantLock;
@@ -28,12 +29,35 @@ public class QueueMMapFileModel extends MMapFileModel {
         }
         String latestQueueFilePath;
         QueueModel queue = topicModel.getQueue(queueId);
+        if (Objects.isNull(queue)) {
+            throw new RuntimeException("queue not found: " + queueId);
+        }
         if (queue.isFull()) {
             latestQueueFilePath = queue.createNewQueueFile(topicName);
         } else {
             latestQueueFilePath = QueueUtil.buildQueueFilePath(topicName, queueId, queue.getFilename());
         }
         return latestQueueFilePath;
+    }
+
+    public void writeContent(byte[] bytes) throws IOException {
+        writeContent(bytes, false);
+    }
+
+    public void writeContent(byte[] bytes, boolean force) throws IOException {
+        QueueModel queue = CommonCache.getQueue(topicName, queueId);
+        try {
+            putLock.lock();
+
+            if (queue.willFull(bytes.length)) {
+                String latestQueueFilePath = queue.createNewQueueFile(topicName);
+                loadFileInMMap(latestQueueFilePath, 0, BrokerConstants.QUEUE_SIZE);
+            }
+            super.writeContent(bytes, force);
+            queue.getLatestOffset().getAndAdd(bytes.length);
+        } finally {
+            putLock.unlock();
+        }
     }
 
 }
